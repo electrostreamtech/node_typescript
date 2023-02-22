@@ -210,26 +210,44 @@ export const updateEvent = async (
   next: NextFunction
 ) => {
   try {
-    const resUpdateEventValidation: IUpdateEvent =
-      await UpdateEventValidation.validateAsync(req.body);
-
-    if (!UpdateEventValidation) {
+    const eventIdValidation = await EventIdValidation.validateAsync(
+      req.params.eventId
+    );
+    if (!eventIdValidation) {
       return next(
         res.status(400).json({
-          message: "Operation failed, invalid details provided.",
+          message: "Operation failed, invalid ID provided.",
         })
       );
     } else {
-      const updatedEvents = "";
-
-      if (updatedEvents) {
-        res.status(200).json(updatedEvents);
-      } else {
+      let body: IUpdateEvent = req.body;
+      const resUpdateEventValidation: IUpdateEvent =
+        await UpdateEventValidation.validateAsync(req.body);
+      if (!resUpdateEventValidation) {
         return next(
-          res.status(404).json({
-            message: "Not found.",
+          res.status(400).json({
+            message: "Operation failed, invalid details provided.",
           })
         );
+      } else {
+        let ID = eventIdValidation;
+        const event = {
+          id: ID,
+          title: body.title,
+          location: body.location,
+          date: body.date,
+        };
+        await db.push(`/eventData/${ID}`, event);
+
+        if (event) {
+          res.status(200).json(event);
+        } else {
+          return next(
+            res.status(404).json({
+              message: "Not found.",
+            })
+          );
+        }
       }
     }
   } catch (error: any) {
