@@ -6,21 +6,25 @@ import {
   UpdateEventValidation,
 } from "../Validations/EventValidation";
 import { IUpdateEvent } from "../Types/IUpadateEvent";
-
+import { JsonDB, Config } from "node-json-db";
+var randomstring = require("randomstring");
+var db = new JsonDB(new Config("myDataBase", true, false, "/"));
 /**
  * add new event
  * @param eventModelValidation
  */
 const addEvent = async (eventModelValidation: IEvent) => {
   try {
+    let ID = await randomstring.generate(6);
     const event = {
+      id: ID,
       title: eventModelValidation.title,
       location: eventModelValidation.location,
       date: eventModelValidation.date,
     };
-    const savedEvent = "";
-
-    return savedEvent;
+    await db.push(`/eventData/${ID}`, event);
+    await db.save();
+    return event;
   } catch (error) {
     console.log(error);
   }
@@ -49,7 +53,7 @@ export const CreateEvent = async (
         })
       );
     } else {
-      const newEvent = await addEvent(eventModelValidation);
+      const newEvent: any = await addEvent(eventModelValidation);
       if (newEvent) {
         res.status(201).json({
           newEvent,
@@ -86,7 +90,7 @@ export const getAllEvents = async (
   next: NextFunction
 ) => {
   try {
-    const getEvents = "";
+    const getEvents = await db.getData(`/eventData`);
 
     if (getEvents) {
       res.status(200).json(getEvents);
@@ -132,7 +136,7 @@ export const getEvent = async (
         })
       );
     } else {
-      const getEvents = "";
+      const getEvents = await db.getObject(`/eventData/${eventIdValidation}`);
 
       if (getEvents) {
         res.status(200).json(getEvents);
@@ -179,17 +183,8 @@ export const deleteEvent = async (
         })
       );
     } else {
-      const deleteEvent = "";
-
-      if (deleteEvent) {
-        res.status(200).json(deleteEvent);
-      } else {
-        return next(
-          res.status(404).json({
-            message: "Not found.",
-          })
-        );
-      }
+      await db.delete(`/eventData/${eventIdValidation}`);
+      res.status(200).json({ deletedId: eventIdValidation });
     }
   } catch (error: any) {
     if (error.isJoi === true) {
