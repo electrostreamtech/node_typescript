@@ -93,7 +93,14 @@ export const getAllEvents = async (
     const getEvents = await db.getData(`/eventData`);
 
     if (getEvents) {
-      res.status(200).json(getEvents);
+      const mappedDataArray: Array<Object> = [];
+      for (const key in getEvents) {
+        const mappedData = {
+          ...getEvents[key],
+        };
+        mappedDataArray.push(mappedData);
+      }
+      res.status(200).send(mappedDataArray);
     } else {
       return next(
         res.status(404).json({

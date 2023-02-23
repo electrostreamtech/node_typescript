@@ -5,7 +5,8 @@ import bodyParser from "body-parser";
 import EventRoute from "./Routes/EventRoute";
 import morgan from "morgan";
 const app = express();
-
+const cors = require("cors");
+app.use(cors());
 app.use(helmet());
 app.use(bodyParser.json());
 //morgan used for logging
